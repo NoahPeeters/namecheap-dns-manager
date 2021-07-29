@@ -1,0 +1,29 @@
+accessKey:
+  namecheap:
+    api_key: 6f917a***********************dab
+    username: your_username
+    ip: "0.0.0.0"
+    sandbox: true
+
+
+host: &host "10.0.0.1"
+
+dns:
+  - domain: "wentong123.com"
+    records:
+      - rr: "@"
+        type: A
+        value: *host
+        ttl: 600
+      - rr: www
+        type: A
+        value: *host
+        ttl: 600
+      - rr: plus
+        type: A
+        value: *host
+        ttl: 600
+      - rr: "*.wire"
+        type: A
+        value: *host
+        ttl: 600
