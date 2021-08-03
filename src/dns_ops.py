@@ -19,3 +19,11 @@ class NamecheapDnsOps:
             'TTL': str(ttl)
         }
         return self.api.domains_dns_addHost(domain, record)
+
+    def delete_domain_record(self, domain, rr, record_type, value):
+        record = {
+            'Type': record_type,
+            'Name': rr,
+            'Address': value
+        }
+        return self.api.domains_dns_delHost(domain, record)

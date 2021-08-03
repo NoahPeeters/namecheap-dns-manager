@@ -38,6 +38,14 @@ def load_and_update_dns_config(cfg_path):
             while len(matches_records) == 0 or matches_records[0]['Address'] != value:
                 print("try add record [{}] {}.{} -> {}".format(record_type, rr, domain, value))
                 print(ops.add_domain_record(domain, rr, record_type, value, ttl))
+
+                # 删除不需要的记录
+                for matches_record in matches_records:
+                    if matches_record['Address'] != value:
+                        print("try delete old record [{}] {}.{} -> {}"
+                              .format(record_type, rr, domain, value))
+                        ops.delete_domain_record(domain, rr, record_type, matches_record['Address'])
+
                 online_records = ops.get_domain_records(domain)
                 matches_records = _find_matches_records(online_records, rr, record_type)
             print("status now [{}] {}.{} -> {}".format(record_type, rr, domain, value))
