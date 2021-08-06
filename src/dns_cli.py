@@ -17,7 +17,8 @@ def build_ops_client_from_root_config(namecheap_conf):
     username = namecheap_conf.get("accessKey").get("namecheap").get("username")
     ip = namecheap_conf.get("accessKey").get("namecheap").get("ip")
     sandbox = namecheap_conf.get("accessKey").get("namecheap").get("sandbox")
-    return NamecheapDnsOps(api_key, username, ip, sandbox)
+    debug = namecheap_conf.get("accessKey").get("namecheap").get("debug")
+    return NamecheapDnsOps(api_key, username, ip, sandbox, debug)
 
 def load_and_update_dns_config(cfg_path):
     namecheap_conf = load_namecheap_conf(cfg_path)
@@ -39,7 +40,7 @@ def load_and_update_dns_config(cfg_path):
                 print("try add record [{}] {}.{} -> {}".format(record_type, rr, domain, value))
                 print(ops.add_domain_record(domain, rr, record_type, value, ttl))
 
-                # 删除不需要的记录
+                # delete records no longer needed
                 for matches_record in matches_records:
                     if matches_record['Address'] != value:
                         print("try delete old record [{}] {}.{} -> {}"

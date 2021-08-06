@@ -5,8 +5,8 @@ from namecheap import Api
 
 
 class NamecheapDnsOps:
-    def __init__(self, api_key, username, ip_address, sandbox):
-        self.api = Api(username, api_key, username, ip_address, sandbox=sandbox)
+    def __init__(self, api_key, username, ip_address, sandbox, debug):
+        self.api = Api(username, api_key, username, ip_address, sandbox=sandbox, debug=debug)
 
     def get_domain_records(self, domain):
         return self.api.domains_dns_getHosts(domain)
