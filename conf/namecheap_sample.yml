@@ -3,7 +3,7 @@ accessKey:
     api_key: 6f917a***********************dab
     username: your_username
     ip: "0.0.0.0"
-    sandbox: true
+    sandbox: false
 
 
 host: &host "10.0.0.1"
