@@ -36,7 +36,7 @@ def load_and_update_dns_config(cfg_path):
             matches_records = _find_matches_records(online_records, rr, record_type)
 
             # create record if not exists
-            while len(matches_records) == 0 or matches_records[0]['Address'] != value:
+            while not matches_records or matches_records[0]['Address'] != value:
                 print("try add record [{}] {}.{} -> {}".format(record_type, rr, domain, value))
                 print(ops.add_domain_record(domain, rr, record_type, value, ttl))
 
@@ -71,17 +71,18 @@ def show_online_config(cfg_path):
 
 def _print_matches_records(records, domain, rr, record_type):
     matches_records = _find_matches_records(records, rr, record_type)
-    if len(matches_records) == 0:
+    if not matches_records:
         print("status now [{}] {}.{} -> nil".format(record_type, rr, domain))
 
     for record in matches_records:
-        print("status now [{}] {}.{} -> {}, TTL: {}s".format(record_type, rr, domain, record['Address'], record['TTL']))
+        print("status now [{}] {}.{} -> {} TTL: {}s"
+              .format(record_type, rr, domain, record['Address'], record['TTL']))
 
 def _find_matches_records(records, rr, record_type):
     return [record for record in records if record['Type'] == record_type and record['Name'] == rr]
 
 
-guide = '''\
+GUIDE_DOC = '''\
 Usage:
     namecheap-dns-manager <command> [/path/to/dns/config]
 
@@ -95,7 +96,7 @@ def main():
     params = sys.argv[1:]
 
     if len(params) < 2:
-        print(guide)
+        print(GUIDE_DOC)
         return
 
     command = params[0]
