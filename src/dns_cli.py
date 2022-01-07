@@ -20,37 +20,83 @@ def build_ops_client_from_root_config(namecheap_conf):
     debug = namecheap_conf.get("accessKey").get("namecheap").get("debug")
     return NamecheapDnsOps(api_key, username, ip, sandbox, debug)
 
-def load_and_update_dns_config(cfg_path):
+def _load_dns_records(config):
+    newRecords = []
+    for record in config.get("records"):
+        rr = record.get("rr")
+        record_type = record.get("type")
+        values = record.get("value")
+
+        if not isinstance(values, list):
+            values = [values]
+
+
+        for value in values:
+            address = None
+            ttl = None
+            mxpref = None
+            if isinstance(value, str):
+                address = value
+            else:
+                address = value.get('value')
+                ttl = value.get("ttl")
+                mxpref = value.get('mxpref')
+
+            if ttl == None:
+                ttl = 1799
+            if mxpref == None:
+                mxpref = 10
+
+            newRecords.append({
+                'Name': rr,
+                'Type': record_type,
+                'Address': address,
+                'TTL': ttl,
+                'MXPref': mxpref
+            })
+        
+    return newRecords
+
+def _matches(local, online):
+    return local['Name'] == online['Name'] and \
+           local['Type'] == online['Type'] and \
+           local['Address'] == online['Address'] and \
+           str(local['TTL']) == online['TTL'] and \
+           str(local['MXPref']) == online['MXPref']
+
+def load_and_update_dns_config(cfg_path, dryrun):
     namecheap_conf = load_namecheap_conf(cfg_path)
     ops = build_ops_client_from_root_config(namecheap_conf)
 
     for config in namecheap_conf.get("dns"):
         domain = config.get("domain")
         online_records = ops.get_domain_records(domain)
-        for record in config.get("records"):
-            rr = record.get("rr")
-            record_type = record.get("type")
-            value = record.get("value")
-            ttl = record.get("ttl")
 
-            matches_records = _find_matches_records(online_records, rr, record_type)
+        records = _load_dns_records(config)
 
-            # create record if not exists
-            while not matches_records or matches_records[0]['Address'] != value:
-                print("try add record [{}] {}.{} -> {}".format(record_type, rr, domain, value))
-                print(ops.add_domain_record(domain, rr, record_type, value, ttl))
+        # delete old ones
+        for online_record in online_records:
+            found_match = False
+            for record in records:
+                if _matches(record, online_record):
+                    found_match = True
 
-                # delete records no longer needed
-                for matches_record in matches_records:
-                    if matches_record['Address'] != value:
-                        print("try delete old record [{}] {}.{} -> {}"
-                              .format(record_type, rr, domain, value))
-                        ops.delete_domain_record(domain, rr, record_type, matches_record['Address'])
+            if not found_match:
+                print_record("deleting", domain, online_record)
+                if not dryrun:
+                    ops.delete_domain_record(domain, record["Name"], record["Type"], record["Address"])
+        
+        # adding new ones
+        for record in records:
+            found_match = False
+            for online_record in online_records:
+                if _matches(record, online_record):
+                    found_match = True
 
-                online_records = ops.get_domain_records(domain)
-                matches_records = _find_matches_records(online_records, rr, record_type)
-            print("status now [{}] {}.{} -> {}".format(record_type, rr, domain, value))
-
+            if not found_match:
+                print_record("adding  ", domain, record)
+                if not dryrun:
+                    print(ops.add_domain_record(domain, record["Name"], record["Type"], record["Address"], record["TTL"], record["MXPref"]))
     print("Done.")
 
 
@@ -62,12 +108,19 @@ def show_online_config(cfg_path):
         domain = config.get("domain")
         online_records = ops.get_domain_records(domain)
 
-        for record in config.get("records"):
-            rr = record.get("rr")
-            record_type = record.get("type")
-            _print_matches_records(online_records, domain, rr, record_type)
+        for record in online_records:
+            print_record("status now", domain, record)
+            
 
     print("End.")
+
+def print_record(prefix, domain, record):
+    if record["Type"] == "MX" and record["MXPref"]:
+        print("{} [{}] {}.{} -> {} Pref: {}, TTL: {}s"
+            .format(prefix, record["Type"], record["Name"], domain, record["Address"], record["MXPref"], record["TTL"]))
+    else:
+        print("{} [{}] {}.{} -> {} TTL: {}s"
+            .format(prefix, record["Type"], record["Name"], domain, record["Address"], record["TTL"]))
 
 def _print_matches_records(records, domain, rr, record_type):
     matches_records = _find_matches_records(records, rr, record_type)
@@ -89,6 +142,7 @@ Usage:
 Commands:
     status    show current dns status
     update    load dns config from local, flush local config to namecheap
+    dryrun    print what would be done during a dryrun
 '''
 
 
@@ -103,7 +157,9 @@ def main():
     cfg_path = params[1]
 
     if command == 'update':
-        load_and_update_dns_config(cfg_path)
+        load_and_update_dns_config(cfg_path, False)
+    elif command == 'dryrun':
+        load_and_update_dns_config(cfg_path, True)
     elif command == 'status':
         show_online_config(cfg_path)
     else:

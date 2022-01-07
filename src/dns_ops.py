@@ -11,12 +11,13 @@ class NamecheapDnsOps:
     def get_domain_records(self, domain):
         return self.api.domains_dns_getHosts(domain)
 
-    def add_domain_record(self, domain, rr, record_type, value, ttl=300):
+    def add_domain_record(self, domain, rr, record_type, value, ttl=1799, mxpref=10):
         record = {
             'Type': record_type,
             'Name': rr,
             'Address': value,
-            'TTL': str(ttl)
+            'TTL': str(ttl),
+            'MXPref': str(mxpref)
         }
         return self.api.domains_dns_addHost(domain, record)
 
