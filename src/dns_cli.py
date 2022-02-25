@@ -84,7 +84,7 @@ def load_and_update_dns_config(cfg_path, dryrun):
             if not found_match:
                 print_record("deleting", domain, online_record)
                 if not dryrun:
-                    ops.delete_domain_record(domain, record["Name"], record["Type"], record["Address"])
+                    ops.delete_domain_record(domain, online_record["Name"], online_record["Type"], online_record["Address"])
         
         # adding new ones
         for record in records:
