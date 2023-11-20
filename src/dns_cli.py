@@ -5,12 +5,13 @@ from __future__ import print_function
 
 import sys
 import yaml
-from . dns_ops import NamecheapDnsOps
+from dns_ops import NamecheapDnsOps
 
 
 def load_namecheap_conf(path):
     with open(path) as fp:
         return yaml.load(fp, Loader=yaml.FullLoader)
+
 
 def build_ops_client_from_root_config(namecheap_conf):
     api_key = namecheap_conf.get("accessKey").get("namecheap").get("api_key")
@@ -19,6 +20,7 @@ def build_ops_client_from_root_config(namecheap_conf):
     sandbox = namecheap_conf.get("accessKey").get("namecheap").get("sandbox")
     debug = namecheap_conf.get("accessKey").get("namecheap").get("debug")
     return NamecheapDnsOps(api_key, username, ip, sandbox, debug)
+
 
 def _load_dns_records(config):
     newRecords = []
@@ -29,7 +31,6 @@ def _load_dns_records(config):
 
         if not isinstance(values, list):
             values = [values]
-
 
         for value in values:
             address = None
@@ -54,15 +55,26 @@ def _load_dns_records(config):
                 'TTL': ttl,
                 'MXPref': mxpref
             })
-        
+
     return newRecords
 
+
 def _matches(local, online):
+    if local['Name'] == 'shlink' and online['Name'] == 'shlink':
+        print(local)
+        print(online)
+        print(local['Name'] == online['Name'])
+        print(local['Type'] == online['Type'])
+        print(local['Address'] == online['Address'])
+        print(str(local['TTL']) == online['TTL'])
+        print(str(local['MXPref']) == online['MXPref'])
+
     return local['Name'] == online['Name'] and \
            local['Type'] == online['Type'] and \
            local['Address'] == online['Address'] and \
            str(local['TTL']) == online['TTL'] and \
            str(local['MXPref']) == online['MXPref']
+
 
 def load_and_update_dns_config(cfg_path, dryrun):
     namecheap_conf = load_namecheap_conf(cfg_path)
@@ -84,8 +96,9 @@ def load_and_update_dns_config(cfg_path, dryrun):
             if not found_match:
                 print_record("deleting", domain, online_record)
                 if not dryrun:
-                    ops.delete_domain_record(domain, online_record["Name"], online_record["Type"], online_record["Address"])
-        
+                    ops.delete_domain_record(domain, online_record["Name"], online_record["Type"],
+                                             online_record["Address"])
+
         # adding new ones
         for record in records:
             found_match = False
@@ -96,7 +109,9 @@ def load_and_update_dns_config(cfg_path, dryrun):
             if not found_match:
                 print_record("adding  ", domain, record)
                 if not dryrun:
-                    print(ops.add_domain_record(domain, record["Name"], record["Type"], record["Address"], record["TTL"], record["MXPref"]))
+                    print(
+                        ops.add_domain_record(domain, record["Name"], record["Type"], record["Address"], record["TTL"],
+                                              record["MXPref"]))
     print("Done.")
 
 
@@ -110,17 +125,19 @@ def show_online_config(cfg_path):
 
         for record in online_records:
             print_record("status now", domain, record)
-            
 
     print("End.")
+
 
 def print_record(prefix, domain, record):
     if record["Type"] == "MX" and record["MXPref"]:
         print("{} [{}] {}.{} -> {} Pref: {}, TTL: {}s"
-            .format(prefix, record["Type"], record["Name"], domain, record["Address"], record["MXPref"], record["TTL"]))
+              .format(prefix, record["Type"], record["Name"], domain, record["Address"], record["MXPref"],
+                      record["TTL"]))
     else:
         print("{} [{}] {}.{} -> {} TTL: {}s"
-            .format(prefix, record["Type"], record["Name"], domain, record["Address"], record["TTL"]))
+              .format(prefix, record["Type"], record["Name"], domain, record["Address"], record["TTL"]))
+
 
 def _print_matches_records(records, domain, rr, record_type):
     matches_records = _find_matches_records(records, rr, record_type)
@@ -130,6 +147,7 @@ def _print_matches_records(records, domain, rr, record_type):
     for record in matches_records:
         print("status now [{}] {}.{} -> {} TTL: {}s"
               .format(record_type, rr, domain, record['Address'], record['TTL']))
+
 
 def _find_matches_records(records, rr, record_type):
     return [record for record in records if record['Type'] == record_type and record['Name'] == rr]
