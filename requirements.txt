@@ -1,2 +1,3 @@
-PyYAML~=5.4
+PyNamecheap==0.0.3
+PyYAML==6.0.1
 setuptools~=60.2.0

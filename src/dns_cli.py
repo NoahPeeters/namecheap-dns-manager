@@ -70,10 +70,10 @@ def _matches(local, online):
         print(str(local['MXPref']) == online['MXPref'])
 
     return local['Name'] == online['Name'] and \
-           local['Type'] == online['Type'] and \
-           local['Address'] == online['Address'] and \
-           str(local['TTL']) == online['TTL'] and \
-           str(local['MXPref']) == online['MXPref']
+        local['Type'] == online['Type'] and \
+        local['Address'] == online['Address'] and \
+        str(local['TTL']) == online['TTL'] and \
+        str(local['MXPref']) == online['MXPref']
 
 
 def load_and_update_dns_config(cfg_path, dryrun):
