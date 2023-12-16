@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import sys
 import yaml
-from dns_ops import NamecheapDnsOps
+from .dns_ops import NamecheapDnsOps
 
 
 def load_namecheap_conf(path):
