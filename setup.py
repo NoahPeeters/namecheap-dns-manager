@@ -18,5 +18,5 @@ setup(
     entry_points={
         'console_scripts': ['namecheap-dns-manager=namecheap_dns_manager.dns_cli:main']
     },
-    install_requires=['PyNamecheap==0.0.3', 'PyYAML==5.4']
+    install_requires=['PyNamecheap==0.0.3', 'PyYAML==6.0.1']
 )
