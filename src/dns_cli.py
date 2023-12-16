@@ -60,15 +60,6 @@ def _load_dns_records(config):
 
 
 def _matches(local, online):
-    if local['Name'] == 'shlink' and online['Name'] == 'shlink':
-        print(local)
-        print(online)
-        print(local['Name'] == online['Name'])
-        print(local['Type'] == online['Type'])
-        print(local['Address'] == online['Address'])
-        print(str(local['TTL']) == online['TTL'])
-        print(str(local['MXPref']) == online['MXPref'])
-
     return local['Name'] == online['Name'] and \
         local['Type'] == online['Type'] and \
         local['Address'] == online['Address'] and \
